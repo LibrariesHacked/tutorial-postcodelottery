@@ -98,8 +98,9 @@ create index gix_oas_geom ON oas USING GIST (geom);
 
 
 -- 
-select
-	postcode, 
+copy(select
+	postcode,
+	urban_code,
 	ntile(7) over (partition by urban_code order by distance) as grade
 from 
 	(select 
@@ -108,4 +109,5 @@ from
 	 	(select st_distance(l.geom, p.geom) as distance from libraries l order by distance asc limit 1) as distance
 	from england_postcodes p
 	join oas o on st_within(p.geom, o.geom)
-	join rural_urban ru on ru.OA11CD = o.oa11cd) as ranking;
+	join rural_urban ru on ru.OA11CD = o.oa11cd) as ranking
+order by postcode, urban_code, grade) to 'C:\Development\LibrariesHacked\tutorial-postcodelottery\data\lottery.csv' csv header;
